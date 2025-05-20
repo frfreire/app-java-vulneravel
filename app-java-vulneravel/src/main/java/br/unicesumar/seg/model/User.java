@@ -1,61 +1,29 @@
-package br.unicesumar.seg.model.model;
+package br.unicesumar.seg.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank(message = "Nome é obrigatório")
-    @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
-    @Column(nullable = false)
     private String nome;
-
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ter um formato válido")
-    @Column(nullable = false, unique = true)
     private String email;
-
-    @Size(max = 500, message = "Descrição não pode ter mais de 500 caracteres")
     private String descricao;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Construtores
+
     public User() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public User(String nome, String email, String descricao) {
+        this();
         this.nome = nome;
         this.email = email;
         this.descricao = descricao;
     }
 
-    // Lifecycle callbacks
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -70,6 +38,7 @@ public class User {
 
     public void setNome(String nome) {
         this.nome = nome;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public String getEmail() {
@@ -78,6 +47,7 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public String getDescricao() {
@@ -86,6 +56,7 @@ public class User {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public LocalDateTime getCreatedAt() {
@@ -104,17 +75,40 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    // toString usando Text Blocks (Java 15+)
+    public boolean isValid() {
+        return nome != null && !nome.trim().isEmpty() && nome.length() >= 2 && nome.length() <= 100 &&
+                email != null && !email.trim().isEmpty() && email.contains("@") &&
+                (descricao == null || descricao.length() <= 500);
+    }
+
+    public String getValidationError() {
+        if (nome == null || nome.trim().isEmpty()) {
+            return "Nome é obrigatório";
+        }
+        if (nome.length() < 2 || nome.length() > 100) {
+            return "Nome deve ter entre 2 e 100 caracteres";
+        }
+        if (email == null || email.trim().isEmpty()) {
+            return "Email é obrigatório";
+        }
+        if (!email.contains("@")) {
+            return "Email deve ter um formato válido";
+        }
+        if (descricao != null && descricao.length() > 500) {
+            return "Descrição não pode ter mais de 500 caracteres";
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
-        return String.format("""
-               User{
-                   id=%d,
-                   nome='%s',
-                   email='%s',
-                   descricao='%s',
-                   createdAt=%s,
-                   updatedAt=%s
-               }""", id, nome, email, descricao, createdAt, updatedAt);
+        return "User{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", email='" + email + '\'' +
+                ", descricao='" + descricao + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
